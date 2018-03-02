@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Auto Silence</string>
+    <string name="title_activity_maps">Choose GeoLocation</string>
+    <string name="title_activity_main">Auto Silence</string>
+    <string name="map_menu_select">SELECT</string>
+
+
+    <!-- Strings for ConfirmDialogActivity-->
+    <string name="confirm_dialog_activity_title">Confirm Geofences</string>
+    <string name="confirm_dialog_activity_name">Name for the Geofence</string>
+    <string name="confirm_dialog_activity_latitude">Latitude</string>
+    <string name="confirm_dialog_activity_longitude" >Longitude</string>
+    <string name="confirm_dialog_activity_radius">Radius</string>
+    <string name="confirm_dialog_activity_address">Address</string>
+    <string name="confirm_dialog_activity_button_confirm">Confirm</string>
+    <string name="confirm_dialog_activity_button_cancel">Cancel</string>
+</resources>
