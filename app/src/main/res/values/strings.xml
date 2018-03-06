@@ -14,4 +14,5 @@
     <string name="confirm_dialog_activity_address">Address</string>
     <string name="confirm_dialog_activity_button_confirm">Confirm</string>
     <string name="confirm_dialog_activity_button_cancel">Cancel</string>
+    <string name="action_mode_remove">Remove</string>
 </resources>

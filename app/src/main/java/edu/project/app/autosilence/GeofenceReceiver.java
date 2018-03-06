@@ -19,6 +19,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
         try {
             GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
             if (geofencingEvent.hasError()) {
+                //If anything not proper just toast it and return.
                 String errorMessage = getErrorString(geofencingEvent.getErrorCode());
                 Log.e(TAG, errorMessage);
                 Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show();
@@ -39,12 +40,15 @@ public class GeofenceReceiver extends BroadcastReceiver {
                 Toast.makeText(context, "An unknown event triggered", Toast.LENGTH_SHORT).show();
             }
         } catch (NullPointerException e) {
-            Toast.makeText(context, "NullPointer Exception!!", Toast.LENGTH_SHORT).show();
+            //AudioManager is expected to give NullPointerException sometime.
+            Toast.makeText(context, "NullPointer Exception from AudioManager!!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
+            //An Unknown Exception. Toast it.
             Toast.makeText(context, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
         }
     }
 
+    //The function return appropriate error messages based on the geofence error codes
     private String getErrorString(int errorCode) {
         switch (errorCode) {
             case GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE:

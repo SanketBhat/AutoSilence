@@ -1,6 +1,5 @@
 package edu.project.app.autosilence;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,11 +16,9 @@ import java.util.ArrayList;
 public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapter.LocationListViewHolder> {
 
     private ArrayList<AutoSilenceLocation> locations;
-    private Context context;
 
-    LocationListAdapter(Context context, ArrayList<AutoSilenceLocation> locations) {
+    LocationListAdapter(ArrayList<AutoSilenceLocation> locations) {
         this.locations = locations;
-        this.context = context;
     }
 
     @Override

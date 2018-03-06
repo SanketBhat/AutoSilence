@@ -6,18 +6,21 @@ package edu.project.app.autosilence;
  */
 
 public class AutoSilenceLocation {
+    //Unique id for the geofence location.
     private int id;
+    //Name and address for the geofencing area
     private String name, address;
+    //Latitude and Longitude for the geofencing
     private float lat;
     private float lng;
-
+    //Determines the radius of the geofencing area.
     private float radius;
+    //RequestID for the Geofences.
+    private String requestId;
 
-     AutoSilenceLocation() {
-    }
-
-    AutoSilenceLocation(int id, String name, float lat, float lng, float radius, String address) {
+    AutoSilenceLocation(int id, String requestId, String name, float lat, float lng, float radius, String address) {
         this.name = name;
+        this.requestId = requestId;
         this.address = address;
         this.lat = lat;
         this.lng = lng;
@@ -29,47 +32,27 @@ public class AutoSilenceLocation {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public float getLat() {
         return lat;
     }
 
-    public void setLat(float lat) {
-        this.lat = lat;
-    }
-
     public float getLng() {
         return lng;
-    }
-
-    public void setLng(float lng) {
-        this.lng = lng;
     }
 
     public float getRadius() {
         return radius;
     }
 
-    public void setRadius(float radius) {
-        this.radius = radius;
-    }
-
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getRequestId() {
+        return requestId;
     }
 }

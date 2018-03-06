@@ -3,6 +3,7 @@ package edu.project.app.autosilence;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,7 +29,14 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements OnCompleteListener {
 
+    //Constant to determine the activity from which the result is returned.
     public static final String ACTIVITY_FROM = "activityFrom";
+
+    //Constant key for Preference to store the request id count
+    public static final String REQUEST_ID_EXTRA = "geofenceRequestId";
+
+    //Constant tag for logging purpose.
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     //The main RecyclerView to display all registered geofences.
     private RecyclerView locationList;
@@ -59,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
             //Requesting the permissions
             if ((Build.VERSION.SDK_INT >= 23)) {
-                while (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.MODIFY_AUDIO_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
                     String[] permissions = new String[]{Manifest.permission.MODIFY_AUDIO_SETTINGS, Manifest.permission.ACCESS_FINE_LOCATION};
                     ActivityCompat.requestPermissions(this, permissions, 777);
                 }
@@ -68,14 +76,12 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
             //Preparing the recyclerview
             locationDBHelper = new LocationDBHelper(this);
 
-            //Adding dummy data
-            //insertDummyData();
-
             locationList = findViewById(R.id.rv_list_locations);
             locationList.setLayoutManager(new LinearLayoutManager(this));
-            locationList.setAdapter((listAdapter = new LocationListAdapter(this, locationDBHelper.getAllData())));
+            locationList.setAdapter((listAdapter = new LocationListAdapter(locationDBHelper.getAllData())));
         } catch (Exception e) {
             Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
+            Log.e(TAG, "onCreate: An Exception occurred!", e);
         }
     }
 
@@ -89,7 +95,8 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
                 //Check if the resulted activity is Maps activity or the ConfirmDialogActivity
                 if (fromActivity != null && fromActivity.equals(MapsActivity.FROM_MAPS_ACTIVITY)) {
-                    //Retrieve selected latitude and longitude
+                    //Activity resulted is the MapsActivity.
+                    //Retrieve selected latitude and longitude.
                     double lat = data.getDoubleExtra(ConfirmDialogActivity.GEO_LATITUDE, 0.0);
                     double lng = data.getDoubleExtra(ConfirmDialogActivity.GEO_LONGITUDE, 0.0);
                     float rad = 100.0f;
@@ -101,18 +108,21 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
                 } else {
                     //Activity resulted is the ConfirmDialogActivity.
-                    Double lat = data.getDoubleExtra(ConfirmDialogActivity.GEO_LATITUDE,0.0);
+                    Double lat = data.getDoubleExtra(ConfirmDialogActivity.GEO_LATITUDE, 0.0);
                     Double lng = data.getDoubleExtra(ConfirmDialogActivity.GEO_LONGITUDE, 0.0);
                     Float rad = data.getFloatExtra(ConfirmDialogActivity.GEO_RADIUS, 0.0f);
                     String name = data.getStringExtra(ConfirmDialogActivity.GEO_NAME);
                     String address = data.getStringExtra(ConfirmDialogActivity.GEO_ADDRESS);
-
+                    int idCount = getPreferences(MODE_PRIVATE).getInt(REQUEST_ID_EXTRA, 0);
+                    SharedPreferences.Editor prefEdit = getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit();
+                    prefEdit.putInt(REQUEST_ID_EXTRA, idCount + 1).apply();
+                    String requestId = REQUEST_ID_EXTRA + idCount;
                     //Adding selected location to the geofencing client
                     GeofencingClient geofencingClient = LocationServices.getGeofencingClient(this);
                     ArrayList<Geofence> geofenceList = new ArrayList<>();
                     geofenceList.add(new Geofence.Builder()
                             .setCircularRegion(lat, lng, rad)
-                            .setRequestId("REQUEST_GEOFENCES")
+                            .setRequestId(requestId)
                             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
                             .setExpirationDuration(Geofence.NEVER_EXPIRE)
                             .build());
@@ -121,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
                             .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER).build();
                     try {
                         geofencingClient.addGeofences(request, getPendingIntent()).addOnCompleteListener(MainActivity.this);
-                        locationDBHelper.insert(name, lat, lng, rad, address);
+                        locationDBHelper.insert(requestId, name, lat, lng, rad, address);
                     } catch (SecurityException e) {
                         Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
                     }

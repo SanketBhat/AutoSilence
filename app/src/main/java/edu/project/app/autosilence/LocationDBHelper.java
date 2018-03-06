@@ -15,19 +15,30 @@ import java.util.ArrayList;
  */
 
 public class LocationDBHelper extends SQLiteOpenHelper {
+    //Constant TAG for logging purpose.
     private static final String TAG = "LocationDBHelper";
 
-    //Database constants
+    //Database file name
     private static final String DATABASE_NAME = "location.db";
+    //Database version
     private static final int DATABASE_VERSION = 1;
 
     //Table constants
-    private static final String COLUMN_NAME_ID = "id";
+    //Table name
     private static final String TABLE_NAME = "locations";
+    //Unique id -> auto increment.
+    private static final String COLUMN_NAME_ID = "id";
+    //Stores latitude of the geofence
     private static final String COLUMN_NAME_LATITUDE = "lat";
+    //Column stores longitude of the geofence
     private static final String COLUMN_NAME_LONGITUDE = "lng";
+    //Column stores the radius of the geofencing area
     private static final String COLUMN_NAME_RADIUS = "radius";
+    //User given or the auto-generated name for the geofence
     private static final String COLUMN_NAME_NAME = "name";
+    //The requestID given to the geofencing area.
+    private static final String COLUMN_NAME_REQUEST_ID = "requestId";
+    //User given or auto created address for the easy identification of the area.
     private static final String COLUMN_NAME_ADDRESS = "address";
 
 
@@ -37,25 +48,32 @@ public class LocationDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        //Query for the table create.
+        //All fields are created as TEXT to preserve the precision of the latitude, longitude and the radius.
         String createQuery = "CREATE TABLE " + TABLE_NAME + "("
                 + COLUMN_NAME_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_NAME_REQUEST_ID + " TEXT,"
                 + COLUMN_NAME_NAME + " TEXT,"
-                + COLUMN_NAME_LATITUDE + " REAL,"
-                + COLUMN_NAME_LONGITUDE + " REAL,"
-                + COLUMN_NAME_RADIUS + " REAL,"
+                + COLUMN_NAME_LATITUDE + " TEXT,"
+                + COLUMN_NAME_LONGITUDE + " TEXT,"
+                + COLUMN_NAME_RADIUS + " TEXT,"
                 + COLUMN_NAME_ADDRESS + " TEXT );";
         Log.d(TAG, "onCreate: Executing "+ createQuery);
+        //Executing the above query
         db.execSQL(createQuery);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        //This function is not yet implemented.
     }
 
-    public boolean insert(final String name, final double latitude, final double longitude,final float radius, final String address) {
+    //The insert function insert a single row of data into the database.
+    //Returns the boolean whether or not row inserted.
+    public boolean insert(final String requestId, final String name, final double latitude, final double longitude, final float radius, final String address) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME_REQUEST_ID, requestId);
         contentValues.put(COLUMN_NAME_NAME, name);
         contentValues.put(COLUMN_NAME_LATITUDE, latitude);
         contentValues.put(COLUMN_NAME_LONGITUDE, longitude);
@@ -66,6 +84,7 @@ public class LocationDBHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    //Function fetches all data from the database and prepares, returns the ArrayList of Locations.
     public ArrayList<AutoSilenceLocation> getAllData() {
         ArrayList<AutoSilenceLocation> locations = new ArrayList<>();
         SQLiteDatabase database = this.getReadableDatabase();
@@ -76,9 +95,11 @@ public class LocationDBHelper extends SQLiteOpenHelper {
         int columnIndexLng = cursor.getColumnIndex(COLUMN_NAME_LONGITUDE);
         int columnIndexRad = cursor.getColumnIndex(COLUMN_NAME_RADIUS);
         int columnIndexAddress = cursor.getColumnIndex(COLUMN_NAME_ADDRESS);
-        for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()){
+        int columnIndexRequestId = cursor.getColumnIndex(COLUMN_NAME_REQUEST_ID);
+        for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()){
             AutoSilenceLocation location = new AutoSilenceLocation(
                     cursor.getInt(columnIndexId),
+                    cursor.getString(columnIndexRequestId),
                     cursor.getString(columnIndexName),
                     cursor.getFloat(columnIndexLat),
                     cursor.getFloat(columnIndexLng),
