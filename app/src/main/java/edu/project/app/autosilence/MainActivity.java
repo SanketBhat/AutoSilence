@@ -27,7 +27,7 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements OnCompleteListener {
+public class MainActivity extends AppCompatActivity implements OnCompleteListener, LocationListAdapter.RecyclerViewClickCallbacks {
 
     //Constant to determine the activity from which the result is returned.
     public static final String ACTIVITY_FROM = "activityFrom";
@@ -37,14 +37,14 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     //Constant tag for logging purpose.
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    //Geofencing client
+    GeofencingClient geofencingClient;
     //The main RecyclerView to display all registered geofences.
     private RecyclerView locationList;
     //The recyclerview adapter for the locationList.
     private LocationListAdapter listAdapter;
     //Database instance to store the added geofences.
     private LocationDBHelper locationDBHelper;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +73,17 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
                 }
             }
 
+
+            //Initialising GeofencingClient
+            geofencingClient = LocationServices.getGeofencingClient(this);
+
             //Preparing the recyclerview
             locationDBHelper = new LocationDBHelper(this);
-
             locationList = findViewById(R.id.rv_list_locations);
             locationList.setLayoutManager(new LinearLayoutManager(this));
             locationList.setAdapter((listAdapter = new LocationListAdapter(locationDBHelper.getAllData())));
+            //Register for RecyclerView Click Callback
+            listAdapter.setRecyclerViewClickCallbacks(this);
         } catch (Exception e) {
             Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
             Log.e(TAG, "onCreate: An Exception occurred!", e);
@@ -88,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         try {
             //Started activity is completed with result code RESULT_OK. If not just ignore.
             if (resultCode == RESULT_OK) {
@@ -118,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
                     prefEdit.putInt(REQUEST_ID_EXTRA, idCount + 1).apply();
                     String requestId = REQUEST_ID_EXTRA + idCount;
                     //Adding selected location to the geofencing client
-                    GeofencingClient geofencingClient = LocationServices.getGeofencingClient(this);
                     ArrayList<Geofence> geofenceList = new ArrayList<>();
                     geofenceList.add(new Geofence.Builder()
                             .setCircularRegion(lat, lng, rad)
@@ -155,7 +160,33 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     @Override
     public void onComplete(@NonNull Task task) {
-        Toast.makeText(this, "Geofences added!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Adding/Removing geofence is done!", Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onItemClick(View v, int position) {
+        //Triggers when recyclerview item clicked.
+        Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+        //Temporarily lets delete the geofence if item clicked.
+        if (geofencingClient == null) {
+            geofencingClient = LocationServices.getGeofencingClient(this);
+        }
+        AutoSilenceLocation location = listAdapter.getItem(position);
+        ArrayList<String> requestIdList = new ArrayList<>();
+        requestIdList.add(location.getRequestId());
+        try {
+            geofencingClient.removeGeofences(requestIdList).addOnCompleteListener(MainActivity.this);
+            if (locationDBHelper.remove(location.getId())) {
+                Toast.makeText(this, "item removed", Toast.LENGTH_SHORT).show();
+            }
+        } catch (SecurityException e) {
+            Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onItemLongClick(View v, int position) {
+        //Triggers when recyclerview item long clicked.
+
+    }
 }

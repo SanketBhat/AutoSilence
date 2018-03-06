@@ -84,6 +84,13 @@ public class LocationDBHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    boolean remove(final int id) {
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+        boolean isRemoved = sqLiteDatabase.delete(TABLE_NAME, COLUMN_NAME_ID + "=" + id, null) >= 0;
+        sqLiteDatabase.close();
+        return isRemoved;
+    }
+
     //Function fetches all data from the database and prepares, returns the ArrayList of Locations.
     public ArrayList<AutoSilenceLocation> getAllData() {
         ArrayList<AutoSilenceLocation> locations = new ArrayList<>();

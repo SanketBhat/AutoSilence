@@ -11,14 +11,14 @@ public class AutoSilenceLocation {
     //Name and address for the geofencing area
     private String name, address;
     //Latitude and Longitude for the geofencing
-    private float lat;
-    private float lng;
+    private double lat;
+    private double lng;
     //Determines the radius of the geofencing area.
     private float radius;
     //RequestID for the Geofences.
     private String requestId;
 
-    AutoSilenceLocation(int id, String requestId, String name, float lat, float lng, float radius, String address) {
+    AutoSilenceLocation(int id, String requestId, String name, double lat, double lng, float radius, String address) {
         this.name = name;
         this.requestId = requestId;
         this.address = address;
@@ -36,11 +36,11 @@ public class AutoSilenceLocation {
         return address;
     }
 
-    public float getLat() {
+    public double getLat() {
         return lat;
     }
 
-    public float getLng() {
+    public double getLng() {
         return lng;
     }
 

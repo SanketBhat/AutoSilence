@@ -17,6 +17,8 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
 
     private ArrayList<AutoSilenceLocation> locations;
 
+    private RecyclerViewClickCallbacks recyclerViewClickCallbacks = null;
+
     LocationListAdapter(ArrayList<AutoSilenceLocation> locations) {
         this.locations = locations;
     }
@@ -41,7 +43,21 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         return locations.size();
     }
 
-    class LocationListViewHolder extends RecyclerView.ViewHolder {
+    void setRecyclerViewClickCallbacks(RecyclerViewClickCallbacks recyclerViewClickCallbacks) {
+        this.recyclerViewClickCallbacks = recyclerViewClickCallbacks;
+    }
+
+    AutoSilenceLocation getItem(int position) {
+        return locations.get(position);
+    }
+
+    interface RecyclerViewClickCallbacks {
+        void onItemClick(View v, int position);
+
+        void onItemLongClick(View v, int position);
+    }
+
+    class LocationListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         TextView listName, listRad, listLat, listLng, listAdd;
         LocationListViewHolder(View itemView) {
@@ -51,6 +67,23 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
             listLng = itemView.findViewById(R.id.listItemLng);
             listRad = itemView.findViewById(R.id.listItemRadius);
             listAdd = itemView.findViewById(R.id.listItemAddress);
+            itemView.setOnClickListener(this);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (recyclerViewClickCallbacks != null)
+                recyclerViewClickCallbacks.onItemClick(v, getAdapterPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (recyclerViewClickCallbacks != null) {
+                recyclerViewClickCallbacks.onItemLongClick(v, getAdapterPosition());
+                return true;
+            }
+            return false;
         }
     }
 }
