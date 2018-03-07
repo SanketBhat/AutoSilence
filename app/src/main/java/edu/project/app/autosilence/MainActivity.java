@@ -1,6 +1,7 @@
 package edu.project.app.autosilence;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -73,6 +74,13 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
                 }
             }
 
+            //Requesting permission to change Audio Settings
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && notificationManager != null && !notificationManager.isNotificationPolicyAccessGranted()) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+                startActivity(intent);
+            }
 
             //Initialising GeofencingClient
             geofencingClient = LocationServices.getGeofencingClient(this);
@@ -167,7 +175,14 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
     public void onItemClick(View v, int position) {
         //Triggers when recyclerview item clicked.
         Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public boolean onItemLongClick(View v, int position) {
+        //Triggers when recyclerview item long clicked.
         //Temporarily lets delete the geofence if item clicked.
+        Toast.makeText(this, "Long Clicked", Toast.LENGTH_SHORT).show();
         if (geofencingClient == null) {
             geofencingClient = LocationServices.getGeofencingClient(this);
         }
@@ -182,11 +197,6 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         } catch (SecurityException e) {
             Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
         }
-    }
-
-    @Override
-    public void onItemLongClick(View v, int position) {
-        //Triggers when recyclerview item long clicked.
-
+        return true;
     }
 }

@@ -54,7 +54,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
     interface RecyclerViewClickCallbacks {
         void onItemClick(View v, int position);
 
-        void onItemLongClick(View v, int position);
+        boolean onItemLongClick(View v, int position);
     }
 
     class LocationListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
@@ -68,7 +68,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
             listRad = itemView.findViewById(R.id.listItemRadius);
             listAdd = itemView.findViewById(R.id.listItemAddress);
             itemView.setOnClickListener(this);
-            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
@@ -80,8 +80,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         @Override
         public boolean onLongClick(View v) {
             if (recyclerViewClickCallbacks != null) {
-                recyclerViewClickCallbacks.onItemLongClick(v, getAdapterPosition());
-                return true;
+                return recyclerViewClickCallbacks.onItemLongClick(v, getAdapterPosition());
             }
             return false;
         }
