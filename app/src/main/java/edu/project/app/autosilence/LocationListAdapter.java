@@ -1,6 +1,7 @@
 package edu.project.app.autosilence;
 
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,21 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         this.locations = locations;
     }
 
+    void setLocations(ArrayList<AutoSilenceLocation> locations) {
+        this.locations = locations;
+        this.notifyDataSetChanged();
+    }
+
+    void addLocation(AutoSilenceLocation location) {
+        locations.add(location);
+        this.notifyItemInserted(locations.indexOf(location));
+    }
+
+    void removeLocation(int position) {
+        locations.remove(position);
+        this.notifyItemRemoved(position);
+    }
+
     @Override
     public LocationListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.location_list_item, parent, false);
@@ -40,6 +56,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
 
     @Override
     public int getItemCount() {
+        if (locations == null) return 0;
         return locations.size();
     }
 
@@ -51,10 +68,16 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         return locations.get(position);
     }
 
+    ItemSwipeHelper getSwipeHelper() {
+        return new ItemSwipeHelper();
+    }
+
     interface RecyclerViewClickCallbacks {
         void onItemClick(View v, int position);
 
         boolean onItemLongClick(View v, int position);
+
+        void onItemSwipe(int position);
     }
 
     class LocationListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
@@ -85,4 +108,23 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
             return false;
         }
     }
+
+    class ItemSwipeHelper extends ItemTouchHelper.SimpleCallback {
+
+        public ItemSwipeHelper() {
+            super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            //Ignore
+            return false;
+        }
+
+        @Override
+        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            recyclerViewClickCallbacks.onItemSwipe(viewHolder.getAdapterPosition());
+        }
+    }
+
 }

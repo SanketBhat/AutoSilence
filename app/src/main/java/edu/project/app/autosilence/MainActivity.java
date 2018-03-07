@@ -6,15 +6,18 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -38,10 +41,13 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     //Constant tag for logging purpose.
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    Snackbar snackbar = null;
+
     //Geofencing client
     GeofencingClient geofencingClient;
-    //The main RecyclerView to display all registered geofences.
-    private RecyclerView locationList;
+    LocationLoadTask loadTask;
+
     //The recyclerview adapter for the locationList.
     private LocationListAdapter listAdapter;
     //Database instance to store the added geofences.
@@ -87,17 +93,28 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
             //Preparing the recyclerview
             locationDBHelper = new LocationDBHelper(this);
-            locationList = findViewById(R.id.rv_list_locations);
+            RecyclerView locationList = findViewById(R.id.rv_list_locations);
             locationList.setLayoutManager(new LinearLayoutManager(this));
-            locationList.setAdapter((listAdapter = new LocationListAdapter(locationDBHelper.getAllData())));
+            locationList.setAdapter((listAdapter = new LocationListAdapter(null)));
             //Register for RecyclerView Click Callback
             listAdapter.setRecyclerViewClickCallbacks(this);
+            new ItemTouchHelper(listAdapter.getSwipeHelper()).attachToRecyclerView(locationList);
         } catch (Exception e) {
             Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
             Log.e(TAG, "onCreate: An Exception occurred!", e);
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadDataIntoAdapter();
+    }
+
+    void loadDataIntoAdapter() {
+        loadTask = new LocationLoadTask();
+        loadTask.execute();
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -128,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
                     String name = data.getStringExtra(ConfirmDialogActivity.GEO_NAME);
                     String address = data.getStringExtra(ConfirmDialogActivity.GEO_ADDRESS);
                     int idCount = getPreferences(MODE_PRIVATE).getInt(REQUEST_ID_EXTRA, 0);
-                    SharedPreferences.Editor prefEdit = getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit();
+                    SharedPreferences.Editor prefEdit = getPreferences(MODE_PRIVATE).edit();
                     prefEdit.putInt(REQUEST_ID_EXTRA, idCount + 1).apply();
                     String requestId = REQUEST_ID_EXTRA + idCount;
                     //Adding selected location to the geofencing client
@@ -168,21 +185,32 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
 
     @Override
     public void onComplete(@NonNull Task task) {
-        Toast.makeText(this, "Adding/Removing geofence is done!", Toast.LENGTH_SHORT).show();
+        if (snackbar != null) snackbar.dismiss();
+        snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Adding/Removing geofence done", Snackbar.LENGTH_SHORT);
+        snackbar.show();
     }
 
     @Override
     public void onItemClick(View v, int position) {
         //Triggers when recyclerview item clicked.
-        Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+        if (snackbar != null) snackbar.dismiss();
+        snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Item clicked!", Snackbar.LENGTH_SHORT);
+        snackbar.show();
 
     }
 
     @Override
     public boolean onItemLongClick(View v, int position) {
         //Triggers when recyclerview item long clicked.
-        //Temporarily lets delete the geofence if item clicked.
-        Toast.makeText(this, "Long Clicked", Toast.LENGTH_SHORT).show();
+        if (snackbar != null) snackbar.dismiss();
+        snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Long clicked on the item", Snackbar.LENGTH_SHORT);
+        snackbar.show();
+
+        return false;
+    }
+
+    @Override
+    public void onItemSwipe(final int position) {
         if (geofencingClient == null) {
             geofencingClient = LocationServices.getGeofencingClient(this);
         }
@@ -192,11 +220,32 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         try {
             geofencingClient.removeGeofences(requestIdList).addOnCompleteListener(MainActivity.this);
             if (locationDBHelper.remove(location.getId())) {
-                Toast.makeText(this, "item removed", Toast.LENGTH_SHORT).show();
+                if (snackbar != null) snackbar.dismiss();
+                snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Item deleted!", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+                listAdapter.removeLocation(position);
             }
         } catch (SecurityException e) {
             Toast.makeText(this, Log.getStackTraceString(e), Toast.LENGTH_LONG).show();
+            if (snackbar != null) snackbar.dismiss();
+            snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Can't delete!", Snackbar.LENGTH_SHORT);
+            snackbar.show();
+            listAdapter.notifyDataSetChanged();
         }
-        return true;
     }
+
+
+    class LocationLoadTask extends AsyncTask<Void, Void, ArrayList<AutoSilenceLocation>> {
+        @Override
+        protected ArrayList<AutoSilenceLocation> doInBackground(Void... voids) {
+            return locationDBHelper.getAllData();
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<AutoSilenceLocation> autoSilenceLocations) {
+            super.onPostExecute(autoSilenceLocations);
+            listAdapter.setLocations(autoSilenceLocations);
+        }
+    }
+
 }
