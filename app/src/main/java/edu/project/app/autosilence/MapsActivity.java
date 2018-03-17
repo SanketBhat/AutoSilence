@@ -2,6 +2,7 @@ package edu.project.app.autosilence;
 
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -12,10 +13,13 @@ import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerDragListener {
@@ -71,7 +75,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        drawAreas(googleMap);
+    }
 
+    private void drawAreas(GoogleMap gMap) {
+        LocationDBHelper dbHelper = new LocationDBHelper(this);
+        ArrayList<AutoSilenceLocation> locations = dbHelper.getAllData();
+        for (int i = 0; i < locations.size(); i++) {
+            AutoSilenceLocation location = locations.get(i);
+            CircleOptions circleOptions = new CircleOptions()
+                    .center(new LatLng(location.getLat(), location.getLng()))
+                    .clickable(false)
+                    .radius(location.getRadius())
+                    .fillColor(Color.argb(150, 200, 200, 200))
+                    .strokeColor(Color.RED)
+                    .strokeWidth(2);
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .title(location.getName())
+                    .draggable(false)
+                    .position(new LatLng(location.getLat(), location.getLng()))
+                    .snippet(location.getAddress())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            gMap.addMarker(markerOptions);
+            gMap.addCircle(circleOptions);
+        }
     }
 
     @Override
