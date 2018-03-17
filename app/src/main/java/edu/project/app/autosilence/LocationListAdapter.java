@@ -8,10 +8,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by Sanket on 19-02-2018.
- *
  */
 
 public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapter.LocationListViewHolder> {
@@ -48,8 +48,8 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
     @Override
     public void onBindViewHolder(LocationListViewHolder holder, int position) {
         holder.listName.setText(locations.get(position).getName());
-        holder.listLat.setText(String.valueOf(locations.get(position).getLat()));
-        holder.listLng.setText(String.valueOf(locations.get(position).getLng()));
+        holder.listLat.setText(String.format(Locale.ENGLISH, "%.4f", locations.get(position).getLat()));
+        holder.listLng.setText(String.format(Locale.ENGLISH, "%.4f", locations.get(position).getLng()));
         holder.listRad.setText(String.valueOf(locations.get(position).getRadius()));
         holder.listAdd.setText(locations.get(position).getAddress());
     }
@@ -83,6 +83,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
     class LocationListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         TextView listName, listRad, listLat, listLng, listAdd;
+
         LocationListViewHolder(View itemView) {
             super(itemView);
             listName = itemView.findViewById(R.id.listItemName);
