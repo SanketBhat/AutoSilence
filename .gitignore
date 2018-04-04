@@ -7,3 +7,6 @@
 /build
 /captures
 .externalNativeBuild
+libs/
+src/androidTest/
+src/test/

@@ -1,5 +1,6 @@
 package edu.project.app.autosilence;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import java.util.Locale;
 
 /**
  * Created by Sanket on 19-02-2018.
+ * The RecyclerView Adapter. It shows the list of geofencing area in the MainActivity.
  */
 
 public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapter.LocationListViewHolder> {
@@ -29,24 +31,25 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
         this.notifyDataSetChanged();
     }
 
-    void addLocation(AutoSilenceLocation location) {
+    /*void addLocation(AutoSilenceLocation location) {
         locations.add(location);
         this.notifyItemInserted(locations.indexOf(location));
-    }
+    }*/
 
     void removeLocation(int position) {
         locations.remove(position);
         this.notifyItemRemoved(position);
     }
 
+    @NonNull
     @Override
-    public LocationListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public LocationListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.location_list_item, parent, false);
         return new LocationListViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(LocationListViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull LocationListViewHolder holder, int position) {
         holder.listName.setText(locations.get(position).getName());
         holder.listLat.setText(String.format(Locale.ENGLISH, "%.4f", locations.get(position).getLat()));
         holder.listLng.setText(String.format(Locale.ENGLISH, "%.4f", locations.get(position).getLng()));
@@ -103,16 +106,13 @@ public class LocationListAdapter extends RecyclerView.Adapter<LocationListAdapte
 
         @Override
         public boolean onLongClick(View v) {
-            if (recyclerViewClickCallbacks != null) {
-                return recyclerViewClickCallbacks.onItemLongClick(v, getAdapterPosition());
-            }
-            return false;
+            return recyclerViewClickCallbacks != null && recyclerViewClickCallbacks.onItemLongClick(v, getAdapterPosition());
         }
     }
 
     class ItemSwipeHelper extends ItemTouchHelper.SimpleCallback {
 
-        public ItemSwipeHelper() {
+        ItemSwipeHelper() {
             super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         }
 
