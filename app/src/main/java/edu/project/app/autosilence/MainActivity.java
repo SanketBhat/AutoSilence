@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
         }
     }
 
-
+    @SuppressWarnings("StaticFieldLeak")
     class LocationLoadTask extends AsyncTask<Void, Void, ArrayList<AutoSilenceLocation>> {
         @Override
         protected ArrayList<AutoSilenceLocation> doInBackground(Void... voids) {
