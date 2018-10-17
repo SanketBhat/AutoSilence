@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements OnCompleteListene
     @Override
     public void onComplete(@NonNull Task task) {
         if (snackbar != null) snackbar.dismiss();
-        snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Adding/Removing geofence done", Snackbar.LENGTH_SHORT);
+        snackbar = Snackbar.make(findViewById(R.id.mainActivityLayout), "Adding geofence done", Snackbar.LENGTH_SHORT);
         snackbar.show();
     }
 
